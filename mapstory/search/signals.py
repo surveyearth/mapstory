@@ -1,8 +1,8 @@
-
 from __future__ import absolute_import, division, print_function, unicode_literals
 from django.db import models
 from haystack.exceptions import NotHandled
 from polymorphic import PolymorphicModel
+from collections import OrderedDict
 
 
 class BaseSignalProcessor(object):
@@ -11,10 +11,19 @@ class BaseSignalProcessor(object):
     index.
     By default, does nothing with signals but provides underlying functionality.
     """
+
+    _change_list = OrderedDict()
+
     def __init__(self, connections, connection_router):
         self.connections = connections
         self.connection_router = connection_router
         self.setup()
+
+    def _add_change(self, method, sender, instance, using):
+        key = (sender, instance.pk, using)
+        if key in self._change_list:
+            del self._change_list[key]
+        self._change_list[key] = (method, instance, using)
 
     def setup(self):
         """
@@ -50,7 +59,9 @@ class BaseSignalProcessor(object):
                     instance = instance.get_real_instance()
 
                 index = self.connections[using].get_unified_index().get_index(sender)
-                index.update_object(instance, using=using)
+                method = index.update_object
+                self._add_change(method, sender, instance, using)
+                #index.update_object(instance, using=using)
 
             except NotHandled:
                 # TODO: Maybe log it or let the exception bubble?
@@ -66,12 +77,21 @@ class BaseSignalProcessor(object):
         for using in using_backends:
             try:
                 index = self.connections[using].get_unified_index().get_index(sender)
-                index.remove_object(instance, using=using)
+                method = index.remove_object
+                self._add_change(method, sender, instance, using)
+                #index.remove_object(instance, using=using)
             except NotHandled:
                 # TODO: Maybe log it or let the exception bubble?
                 pass
 
-
+    def flush_changes(self):
+        while True:
+            try:
+                (sender, pk, using), (method, instance, using) = self._change_list.popitem(last=False)
+            except KeyError:
+                break
+            else:
+                method(instance, using)
 
 class RealtimeSignalProcessor(BaseSignalProcessor):
     """
