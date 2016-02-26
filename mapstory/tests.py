@@ -22,7 +22,7 @@ from geoserver.catalog import FailedRequestError
 from geonode.geoserver.helpers import gs_catalog
 from django import db
 from .importers import GeoServerLayerCreator
-from mapstory.importer.utils import UploadError
+from osgeo_importer.utils import UploadError
 
 User = get_user_model()
 
@@ -458,6 +458,58 @@ class MapStoryTestsWorkFlowTests(MapStoryTestMixin):
         layer.set_permissions(perms)
         print layer.get_all_level_info()
         self.assertEqual(geonode_authorize_layer('AnonymousUser', layer.typename), 'lo-rw')
+
+    def test_detail_page_forms(self):
+        c = Client()
+        layer = Layer.objects.first()
+        response = c.get(reverse('layer_detail', args=[layer.typename]))
+        self.assertEqual(response.status_code, 200)
+
+        # keywords_form test
+        old_keywords = layer.keywords.all()
+        old_keywords_names = []
+        for okeyword in old_keywords:
+            old_keywords_names.append(okeyword.name)
+
+        form_data = {'keywords': 'test, test2'}
+        response = c.post(reverse('layer_detail', args=[layer.typename]), data=form_data)
+        self.assertEqual(response.status_code, 200)
+        # Make sure the layer's keywords are updated
+        layer = Layer.objects.filter(id=layer.id)[0]
+        new_keywords = layer.keywords.all()
+        new_keywords_names = []
+        for nkeyword in new_keywords:
+            new_keywords_names.append(nkeyword.name)
+        self.assertFalse(old_keywords_names == new_keywords_names)
+
+        # metadata_form test
+        old_metadata = {'title': layer.title, 'category': layer.category, 'language': layer.language,
+        'distribution_url': layer.distribution_url, 'data_quality_statement': layer.data_quality_statement,
+        'purpose': layer.purpose, 'is_published': layer.is_published}
+        # distribution url doesn't seem to be modifiable
+        form_data = {'title': 'New title', 'category': '1', 'language': 'fra', 'distribution_url': layer.distribution_url,
+        'data_quality_statement': 'This is quality', 'purpose': 'To educate', 'is_published': 'on'}
+        # The submitted data as it will appear in the model is slightly different
+        submitted_data = {'title': unicode('New title'), 'category': TopicCategory.objects.first(), 'language': unicode('fra'),
+        'distribution_url': layer.distribution_url, 'data_quality_statement': unicode('This is quality'),
+        'purpose': unicode('To educate'), 'is_published': True}
+
+        response = c.post(reverse('layer_detail', args=[layer.typename]), data=form_data)
+        self.assertEqual(response.status_code, 200)
+        layer = Layer.objects.filter(id=layer.id)[0]
+        new_metadata = {'title': layer.title, 'category': layer.category, 'language': layer.language,
+        'distribution_url': layer.distribution_url, 'data_quality_statement': layer.data_quality_statement,
+        'purpose': layer.purpose, 'is_published': layer.is_published}
+
+        self.assertFalse(new_metadata == old_metadata)
+        self.assertEqual(submitted_data, new_metadata)
+
+        # Make sure the keywords have been retained
+        layer_keywords_names = []
+        for lkeyword in layer.keywords.all():
+            layer_keywords_names.append(lkeyword.name)
+        self.assertEqual(layer_keywords_names, new_keywords_names)
+
 
 class LayersCreateTest(MapStoryTestMixin):
 

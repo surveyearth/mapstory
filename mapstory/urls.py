@@ -23,7 +23,7 @@ from mapstory.views import MapStorySignup
 from mapstory.views import CommunityDetail
 from mapstory.views import GroupDetail
 from mapstory.views import map_detail
-from mapstory.views import layer_detail
+from mapstory.views import layer_detail, layer_detail_id
 from mapstory.views import layer_create, layer_append
 from mapstory.views import layer_remove, map_remove
 from mapstory.views import MapStoryConfirmEmailView
@@ -31,7 +31,7 @@ from geonode.layers.views import layer_replace, layer_thumbnail, layer_upload
 from geonode.geoserver.views import layer_acls, resolve_user, layer_batch_download
 from django.core.urlresolvers import reverse_lazy
 from django.views.generic import RedirectView
-from mapstory.importer.urls import urlpatterns as importer_urlpatterns
+from osgeo_importer.urls import urlpatterns as importer_urlpatterns
 
 
 # -- Deprecated url routes for Geoserver authentication -- remove after GeoNode 2.1
@@ -44,6 +44,8 @@ if 'geonode.geoserver' in settings.INSTALLED_APPS:
                            )
 
 layer_detail_patterns = patterns('',
+    url(r'^layers/(?P<layerid>\d+)$', layer_detail_id, name="layer_detail_id"),
+    url(r'^storylayer/(?P<layerid>\d+)$', layer_detail_id, name="storylayer_detail_id"),
     url(r'^layers/(?P<layername>[^/]*)$', layer_detail, name="layer_detail"),
     )
 
@@ -69,6 +71,7 @@ urlpatterns = patterns('',
     url(r'^maps/new/data$', 'mapstory.views.new_map_json', name='new_map_json'),
     url(r'^maps/(?P<mapid>\d+)/remove$', map_remove, name='map_remove'),
     url(r'^maps/(?P<mapid>\d+)/?$', map_detail, name='map_detail'),
+    url(r'^mapstory/(?P<mapid>\d+)/?$', map_detail, name='mapstory_detail'),
 
     # MapLoom
 
