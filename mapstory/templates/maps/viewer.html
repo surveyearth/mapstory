@@ -28,11 +28,15 @@
                 <div id="header">
                     {%verbatim%}
                     <div id="title">
-                        <a target="_blank" href="/maps/{{ mapManager.storyMap.get('id')}}/viewer">
+                        <a target="_blank" href="">
                             <span ng-bind="mapManager.title"></span>
                         </a>
                     </div>
-                    <div id="author" ng-bind="mapManager.owner"></div>
+                    <div id="author">
+                        <a target="_blank" href="/people/profile{{ mapManager.owner }}">
+                            <span ng-bind="mapManager.owner"></span>
+                        </a>
+                    </div>
                     {%endverbatim%}
                 </div>
                 <div class="stLegend"></div>
