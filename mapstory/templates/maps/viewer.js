@@ -168,13 +168,25 @@ module.controller('tileProgressController', function($scope) {
 
 module.controller('viewerController', function($scope, $location, $injector, $log, MapManager, TimeControlsManager) {
     $scope.timeControlsManager = $injector.instantiate(TimeControlsManager);
-    $scope.mapManager = MapManager;
+    $scope.isShown = true;
+    $scope.mapTitle = mapManager.title;
+    $scope.mapOwner = mapManager.owner;
+    $scope.chapter = mapManager.storyChapter;
+    $scope.chapterCount = mapManager.chapterCount;
+    $scope.storyMap = {
+      abstract: mapManager.storyMap.getStoryAbstract(),
+      title: mapManager.storyMap.getStoryTitle()
+    };
+
+    $scope.toggleSidebar = function() {
+      $scope.isShown = !$scope.isShown;
+    };
 
     $scope.nextChapter = function(){
         var nextChapter = Number(MapManager.storyChapter) + 1;
         if(nextChapter <= MapManager.chapterCount) {
              $log.info("Going to Chapter ", nextChapter);
-            $location.path('/chapter/' + nextChapter);
+             $location.path('/chapter/' + nextChapter);
         }else{
              $location.path('');
         }
@@ -198,5 +210,6 @@ module.controller('viewerController', function($scope, $location, $injector, $lo
     };
 
 });
+
 })();
 </script>

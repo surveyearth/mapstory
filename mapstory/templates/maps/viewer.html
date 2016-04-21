@@ -25,23 +25,36 @@
     <div id="main">
         <div id="content">
             <div id="middle">
-                <div id="header">
-                    {%verbatim%}
-                    <div id="title">
-                        <a target="_blank" href="">
-                            <span ng-bind="mapManager.title"></span>
-                        </a>
-                    </div>
-                    <div id="author">
-                        <a target="_blank" href="/people/profile{{ mapManager.owner }}">
-                            <span ng-bind="mapManager.owner"></span>
-                        </a>
-                    </div>
-                    {%endverbatim%}
-                </div>
                 <div class="stLegend"></div>
                 <div id="map"></div>
             </div>
+        </div>
+        <div id="sidebar">
+          <div class="detail-view" ng-show="isShown">
+            <i class="fa fa-reorder" ng-click="toggleSidebar()"></i>
+            {%verbatim%}
+            <div id="title">
+                <a target="_blank" href="">
+                    <span ng-bind="mapTitle"></span>
+                </a>
+            </div>
+            <div id="author">
+                <a target="_blank" href="/people/profile{{ mapOwner }}">
+                    <span ng-bind="mapOwner"></span>
+                </a>
+            </div>
+            {%endverbatim%}
+            <h4 class="panel-title">
+              <div>{{ storyMap.title }}</div>
+              <div style="font-size: smaller;">Chapter {{ chapter }} of  {{ chapterCount }}</div>
+            </h4>
+            <div id="summary-body" class="">
+                <div id="summary-description" class="" ng-bind="storyMap.abstract"></div>
+            </div>
+          </div>
+          <div class="collapsed-view" ng-hide="isShown">
+            <i class="fa fa-reorder" ng-click="toggleSidebar()"></i>
+          </div>
         </div>
     </div>
 
@@ -53,16 +66,6 @@
                 <div class="panel-heading" style="height: 50px;">
                     <button class="btn ng-scope" style="float: left;" ng-click="previousChapter()" ng-disabled="mapManager.storyChapter == 1" tooltip-placement="top" tooltip-append-to-body="true" tooltip="Previous Chapter"><i class="glyphicon glyphicon-step-backward"></i></button>
                     <button class="btn ng-scope" style="float: right;" ng-click="nextChapter()" ng-disabled="mapManager.storyChapter == mapManager.chapterCount" tooltip-placement="top" tooltip-append-to-body="true" tooltip="Next Chapter"><i class="glyphicon glyphicon-step-forward"></i></button>
-                    <h4 class="panel-title" style="text-align: center;">
-                        <a id="summary-title" style="font-weight:400;" data-toggle="collapse" data-target="#summary-body" class="collapsed">
-                            <div>{{ mapManager.storyMap.getStoryTitle() }}</div>
-                            <div style="font-size: smaller;">Chapter {{ mapManager.storyChapter }} of  {{ mapManager.chapterCount }}</div>
-                        </a>
-                    </h4>
-                </div>
-                <div id="summary-body" class="panel-collapse collapse" style="height: 0px;">
-                    <div id="summary-description" class="panel-body"
-                         ng-bind="mapManager.storyMap.getStoryAbstract()"></div>
                 </div>
             </div>
         </div>
